@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Reserva de Emergência</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js via CDN para gráficos de alto desempenho no navegador -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ====================================================================
+         TELA 1: ENTRADA DE DADOS
+         ==================================================================== -->
+    <div id="screen-input" class="card-wrapper">
+      <header class="header-section">
+        <h1 class="header-title">Calculadora e Simulador de Reserva de Emergência</h1>
+        <p class="header-subtitle">
+          Informe os gastos mensais dos últimos 6 meses e o saldo total disponível na sua reserva
+          para gerar o diagnóstico estatístico e o plano prescritivo.
+        </p>
+      </header>
+
+      <section>
+        <h2 class="section-title">Histórico de Gastos Mensais (Últimos 6 Meses)</h2>
+        <div class="expenses-grid">
+          <div class="input-cell">
+            <label for="expense-0">Gasto — Mês 1 (R$)</label>
+            <input type="text" id="expense-0" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+          <div class="input-cell">
+            <label for="expense-1">Gasto — Mês 2 (R$)</label>
+            <input type="text" id="expense-1" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+          <div class="input-cell">
+            <label for="expense-2">Gasto — Mês 3 (R$)</label>
+            <input type="text" id="expense-2" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+          <div class="input-cell">
+            <label for="expense-3">Gasto — Mês 4 (R$)</label>
+            <input type="text" id="expense-3" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+          <div class="input-cell">
+            <label for="expense-4">Gasto — Mês 5 (R$)</label>
+            <input type="text" id="expense-4" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+          <div class="input-cell">
+            <label for="expense-5">Gasto — Mês 6 (R$)</label>
+            <input type="text" id="expense-5" class="input-field" placeholder="Ex: 3250,00" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="reserve-card">
+          <label for="reserve-input" class="reserve-label">Saldo Total da Reserva Atual (R$):</label>
+          <input type="text" id="reserve-input" class="input-field reserve-input" placeholder="Ex: 10500,00" autocomplete="off" />
+        </div>
+
+        <div id="validation-banner" class="validation-banner" role="alert"></div>
+
+        <button id="btn-generate" class="btn-primary" type="button">Gerar Análise e Cenários</button>
+      </section>
+    </div>
+
+    <!-- ====================================================================
+         TELA 2: RESULTADOS, GRÁFICO E PRESCRIÇÃO
+         ==================================================================== -->
+    <div id="screen-results" class="screen-hidden">
+      <!-- Barra Superior -->
+      <div class="top-bar">
+        <button id="btn-back" class="btn-back" type="button">← Voltar</button>
+        <button id="btn-new-simulation" class="btn-new-simulation" type="button">Nova Simulação</button>
+        <h2 class="top-title">Painel Analítico: Diagnóstico Descritivo e Prescrição Financeira</h2>
+        <div id="badge-status" class="badge-status"></div>
+      </div>
+
+      <!-- Grade dos Resultados -->
+      <div class="results-grid">
+        <!-- Coluna Esquerda: Gráfico -->
+        <div class="chart-card">
+          <h3 class="card-title">Evolução dos Gastos (6 Meses) e Média Mensal (x̄)</h3>
+          <div class="chart-wrapper">
+            <canvas id="expenses-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Descritivo e Prescritivo -->
+        <div class="right-panel">
+          <!-- Bloco Descritivo -->
+          <div class="descriptive-card">
+            <h3 class="card-title">Bloco Descritivo — Estatísticas e Autonomia</h3>
+            <div class="metrics-subgrid">
+              <div class="metric-box">
+                <span class="metric-box-title">Média Mensal (x̄):</span>
+                <span id="metric-mean" class="metric-box-val">—</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-box-title">Autonomia da Reserva:</span>
+                <span id="metric-autonomy" class="metric-box-val">—</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-box-title">Maior Gasto (Máx):</span>
+                <span id="metric-max" class="metric-box-val">—</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-box-title">Menor Gasto (Mín):</span>
+                <span id="metric-min" class="metric-box-val">—</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-box-title">Variabilidade (DP / CV):</span>
+                <span id="metric-variability" class="metric-box-val">—</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-box-title">Reserva Atual Informada:</span>
+                <span id="metric-reserve" class="metric-box-val">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloco Prescritivo -->
+          <div id="prescriptive-card" class="prescriptive-card">
+            <h3 class="card-title">Bloco Prescritivo — Planejamento para os Próximos 3 Meses</h3>
+            <h4 id="presc-scenario-title" class="presc-scenario-title"></h4>
+
+            <div class="presc-details-box">
+              <p id="presc-primary-metric" class="presc-metric-primary"></p>
+              <p id="presc-secondary-metric" class="presc-metric-secondary"></p>
+              <p id="presc-explanation" class="presc-explanation"></p>
+
+              <!-- Alerta de Variabilidade e Estabilização de Gastos -->
+              <div id="presc-variability-box" class="variability-alert-box">
+                <span id="presc-variability-alert"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="analytics.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
